@@ -4,5 +4,6 @@ exports.resolve = function resolve(dir){
   return path.join(__dirname,'..',dir)
 }
 
+
 exports.APP_PATH = exports.resolve('/')
 exports.DIST_PATH = exports.resolve('dist')
