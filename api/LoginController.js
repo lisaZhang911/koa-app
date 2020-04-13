@@ -59,6 +59,10 @@ class LoginController {
       }
     }
   }
+
+  registry(ctx){
+    console.log(ctx);
+  }
 }
 
 export default new LoginController()
