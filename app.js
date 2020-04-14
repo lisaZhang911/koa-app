@@ -14,7 +14,7 @@ import koaJwt from 'koa-jwt'
 const app = new koa()
 const isDevMode = process.env.NODE_ENV === 'production'?false:true
 
-const jwt = koaJwt({secret:'abcd'}).unless({path:[/^\/public/,/^\/login/]})
+const jwt = koaJwt({secret:'abcd'}).unless({path:[/^\/public/,/^\/login/,/^\/reg/,/^\/forget/]})
 
 const errorHandle = (ctx, next) => {
   return next().catch((err) => {
