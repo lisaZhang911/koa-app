@@ -5,7 +5,7 @@ class PublicController {
   constructor(){}
   async getCaptcha(ctx){
     const body = ctx.request.query
-    console.log(body);
+    console.log(ctx.request.query);
     const newCaptcha = svgCap.create({})
     ctx.body = {
       code:200,

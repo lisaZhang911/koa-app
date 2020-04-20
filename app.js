@@ -22,14 +22,14 @@ const errorHandle = (ctx, next) => {
       ctx.status = 401;
       ctx.body = {
         code:401,
-        msg:'Protected resource, use Authorization header to get access\n'
+        err_msg:'Protected resource, use Authorization header to get access\n'
       }
     } else {
       console.log('errorapp');
       ctx.status = err.status || 500
       ctx.body = {
         code:500,
-        msg:err.message
+        err_msg:err.message
       }
     }
   })
