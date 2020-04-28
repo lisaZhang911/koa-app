@@ -39,7 +39,7 @@ const errorHandle = (ctx, next) => {
 //使用compse合并中间件，不然就要一个一个app.use()了，像上面那样
 const middleware = compose([
   koaBody(),
-  statics(path.join(__dirname,'../public')),
+  statics(path.join(__dirname,'./public')),
   cors(),
   jsonutil(),
   helmet(),

@@ -6,6 +6,7 @@ import articleController from '../api/ArticleController'
 
 router.prefix('/public')
 router.get('/getCode',publicController.getCaptcha)
-router.get('/getArticleList',articleController.getArticleList)
+router.get('/listChannel',articleController.getArticleList)
+router.get('/week_board',articleController.getTopWeek)
 
 export default router

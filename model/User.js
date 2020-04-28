@@ -1,4 +1,5 @@
 import mongoose from '../config/DB_handle.js'
+import moment from 'moment'
 
 const Schema = mongoose.Schema
 
@@ -24,6 +25,7 @@ UserSchema.pre('save', function(next){
   next()
 })
 UserSchema.static('findById',function(id){
+  console.log(this);
   return this.findOne({_id:id},{
     password:0,
     email:0,

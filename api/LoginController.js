@@ -53,14 +53,27 @@ class LoginController {
       // 如果用户名、密码正确，则返回token
       if(checkUserDb){
         let token = jsonwebtoken.sign({_id:'lisa', exp:Math.floor(Date.now() / 1000) + 60 * 60 * 24},'abcd')
+
+        let userCopy = user.toJSON()
+        const user_arr = ['password','reg_time','__v','_id']
+        user_arr.map(i => {
+          delete userCopy[i]
+        })
+
+
         ctx.body = {
           code:200,
-          token: token
+          data:{
+            token:token,
+            user:userCopy
+          },
+          err_msg:''
         }
       } else {
         ctx.body = {
           code: 404,
-          msg: '用户名或密码错误'
+          data:{},
+          err_msg: '用户名或密码错误'
         }
       }
 
@@ -68,7 +81,8 @@ class LoginController {
       ctx.status =  401
       ctx.body = {
         code:401,
-        msg:'验证码错误或过期'
+        data:{},
+        err_msg:'验证码错误或过期'
       }
     }
   }

@@ -4,39 +4,41 @@ import moment from 'moment'
 const Schema = mongoose.Schema
 
 const ArticleSchema = new Schema({
-  'uid':{type: String, ref:users},
+  'uid':{type: String, ref:'users'},
   'title':{type:String},
   'content':{type:String},
   'create_time':{type:Date},
   'catalog':{type:String},
   'score':{type:Number},
-  'state':{type:String},
+  'tags':{type:String},
   'sore':{type:String},
   'read_s':{type:Number},
   'answ_s':{type:Number},
   'state_sub':{type:String},
-  'isTop':{type:String},
-  'precious':{type:String}
+  'isTop':{type:String}
 })
 
 ArticleSchema.static('getList',function(options,sort,page,limit){
-  // console.log('opstions',options);
-  // console.log('sort',sort);
-  // console.log('page',page);
-  // console.log('limit',limit);
   return this.find(options)
              .sort({[sort]:-1})
              .skip(page*limit)
              .limit(limit)
              .populate({
                path:'uid',
-               select:'name'
+               select:'name isVip avar'
              })
 })
 
+ArticleSchema.static('getTopWeek',function(){
+  return this.find({
+    create_time:{
+      $gte: moment().subtract(7,'days')
+    }
+  }, {answ_s:1, title:1}).sort({'answ_s':-1}).limit(15)
+})
+
 ArticleSchema.pre('save', function(next){
-  console.log('pre');
-  this.create_time = moment().format('YYYY-MM-DD hh:mm:ss')
+  this.create_time = moment().format('YYYY-MM-DD HH:mm:ss')
   next()
 })
 
