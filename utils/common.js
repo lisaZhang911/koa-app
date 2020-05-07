@@ -1,5 +1,5 @@
 import { getValue } from '../config/RedisConfig.js'
-
+import jwt from 'jsonwebtoken'
 
 const checkCode = async (key,value) => {
   const redisData = await getValue(key)
@@ -14,6 +14,12 @@ const checkCode = async (key,value) => {
   }
 }
 
+const getJWT_token = (token) => {
+  return jwt.verify(token.split(' ')[1], 'abcd')
+}
+
+
 export {
-  checkCode
+  checkCode,
+  getJWT_token
 }

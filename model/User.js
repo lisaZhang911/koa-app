@@ -15,6 +15,7 @@ const UserSchema = new Schema({
   'mobile':{type:String, match:/^1[3,5,7,8,9](\d{9})$/},
   'status':{type:String, default:'1'},
   'mark':{type:String},
+  'last_sign':{type:Date},
   'location':{type:String},
   'isVip':{type:Number, default:0},
   'count':{type:Number, default:0}
@@ -25,7 +26,7 @@ UserSchema.pre('save', function(next){
   next()
 })
 UserSchema.static('findById',function(id){
-  console.log(this);
+  // console.log(this);
   return this.findOne({_id:id},{
     password:0,
     email:0,

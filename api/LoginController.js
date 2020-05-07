@@ -35,6 +35,7 @@ class LoginController {
 
       // 如果上一步正确，则验证该邮箱或昵称是否 存在
       let user = await UserModel.findOne({email:body.email})
+      console.log(user);
       if(user==null){
         user = await UserModel.findOne({name:body.email})
         if(user==null){
@@ -52,9 +53,11 @@ class LoginController {
       }
       // 如果用户名、密码正确，则返回token
       if(checkUserDb){
-        let token = jsonwebtoken.sign({_id:'lisa', exp:Math.floor(Date.now() / 1000) + 60 * 60 * 24},'abcd')
-
         let userCopy = user.toJSON()
+
+        // let token = jsonwebtoken.sign({_id:userCopy._id, exp:Math.floor(Date.now() / 1000) + 60 * 60 * 24},'abcd')
+        let token = jsonwebtoken.sign({_id:userCopy._id}, 'abcd', { expiresIn: '1d' })
+
         const user_arr = ['password','reg_time','__v','_id']
         user_arr.map(i => {
           delete userCopy[i]
@@ -78,7 +81,7 @@ class LoginController {
       }
 
     } else {
-      ctx.status =  401
+      // ctx.status =  401
       ctx.body = {
         code:401,
         data:{},
