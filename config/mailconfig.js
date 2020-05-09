@@ -1,6 +1,6 @@
 "use strict";
 import nodemailer from "nodemailer";
-
+import { baseUrl } from '../utils/common.js'
 // async..await is not allowed in global scope, must use a wrapper
 async function send(sendInfo) {
   // Generate test SMTP service account from ethereal.email
@@ -18,13 +18,8 @@ async function send(sendInfo) {
     }
   });
 
-  // let sendInfo = {
-  //   code:'1234',
-  //   expire: '2020-10-01',
-  //   email: '549521498@qq.com',
-  //   user: 'myrcella'
-  // }
-  let url = 'http://www.imooc.com'
+  let route = sendInfo.type == 'email'?'/email':'reset'
+  let url = `${baseUrl}/#${route}?key=${sendInfo.key}`
 
   // send mail with defined transport object
   let info = await transporter.sendMail({

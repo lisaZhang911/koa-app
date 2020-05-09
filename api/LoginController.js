@@ -9,10 +9,11 @@ class LoginController {
   constructor(){}
   async forget(ctx){
     const { body } = ctx.request
+
     let result = await send({
         code:'1234',
         expire: moment().add(5,'minutes').format('YYYY-MM-DD HH:mm:ss'),
-        email: body.name,
+        email: body.email,
         user: 'myrcella'
     })
     ctx.body = {
@@ -35,13 +36,13 @@ class LoginController {
 
       // 如果上一步正确，则验证该邮箱或昵称是否 存在
       let user = await UserModel.findOne({email:body.email})
-      console.log(user);
       if(user==null){
         user = await UserModel.findOne({name:body.email})
         if(user==null){
           ctx.body = {
             code:200,
-            msg:'该账号未注册'
+            data:{},
+            err_msg:'该账号未注册'
           }
           return
         }
@@ -55,7 +56,6 @@ class LoginController {
       if(checkUserDb){
         let userCopy = user.toJSON()
 
-        // let token = jsonwebtoken.sign({_id:userCopy._id, exp:Math.floor(Date.now() / 1000) + 60 * 60 * 24},'abcd')
         let token = jsonwebtoken.sign({_id:userCopy._id}, 'abcd', { expiresIn: '1d' })
 
         const user_arr = ['password','reg_time','__v','_id']
@@ -74,9 +74,9 @@ class LoginController {
         }
       } else {
         ctx.body = {
-          code: 404,
+          code: 200,
           data:{},
-          err_msg: '用户名或密码错误'
+          err_msg: '密码错误'
         }
       }
 

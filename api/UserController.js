@@ -1,7 +1,10 @@
 import { getJWT_token } from '../utils/common.js'
-// import SignRecord_model from '../model/SignRecord.js'
+// import { setValue } from '../config/RedisConfig.js'
 import User_model from '../model/User.js'
+import send from '../config/mailconfig'
 import moment from 'moment'
+import { v4 as uuidv4 } from 'uuid'
+import jwt from 'jsonwebtoken'
 
 class UserController {
   constructor(){}
@@ -31,7 +34,6 @@ class UserController {
     } else {
       last_sign = moment(last_sign).format("YYYY-MM-DD")
       // 非第一次签到。判断是否连续签到，是否已签到
-      console.log(last_sign == today);
 
       if(last_sign == today){
          //今天已签到
@@ -46,7 +48,7 @@ class UserController {
         }
       } else if(last_sign == moment().subtract(1,'days').format('YYYY-MM-DD')){
         // 连续签到
-          let count = user.count
+          let count = user.count + 1
           let score = 0
 
             if(count < 5){
@@ -62,7 +64,7 @@ class UserController {
             } else {
               score = 50
             }
-            await User_model.updateOne({_id:obj._id},{$inc:{score:score, count:1}})
+            await User_model.updateOne({_id:obj._id},{$set:{last_sign:moment().format("YYYY-MM-DD HH:mm:ss")},$inc:{score:score, count:1}})
             ctx.body = {
               code:200,
               err_msg:'',
@@ -74,7 +76,13 @@ class UserController {
             }
         } else {
             // 非连续签到
-            await User_model.updateOne({_id:obj._id},{$set:{count:1},$inc:{score:5}})
+            await User_model.updateOne(
+                    {_id:obj._id},
+                    {
+                      $set:{count:1,last_sign:moment().format("YYYY-MM-DD HH:mm:ss")},
+                      $inc:{score:5}
+                    }
+                  )
             ctx.body = {
               code:200,
               err_msg:'',
@@ -87,6 +95,50 @@ class UserController {
           }
         }
     }
+
+  async baseInfo_update(ctx){
+    const {body} = ctx.request
+    const obj = getJWT_token(ctx.header.authorization)
+
+    const update_r = await User_model.updateOne({_id:obj._id},{$set:body})
+    const user = await User_model.findById(obj._id)
+
+    ctx.body = {
+      code:200,
+      err_msg:'',
+      data:{
+        result:'更新成功',
+        data:{
+          name:user.name,
+          location:user.location,
+          mark:user.mark,
+          avar:user.avar
+        }
+      }
+    }
+  }
+
+  async verify_mail(ctx){
+    const obj = getJWT_token(ctx.header.authorization)
+    const user = await User_model.findById(obj._id)
+    const key = uuidv4()
+    // setValue(key,jwt.sign({_id:obj._id},'abcd',{expiresIn:'30m'}))
+    const {body} = ctx.request
+
+    let result = await send({
+        type:'email',
+        key:key,
+        code:'',
+        expire: moment().add(30,'minutes').format('YYYY-MM-DD HH:mm:ss'),
+        email: body.email,
+        user: user.name
+    })
+    ctx.body = {
+      code:200,
+      err_msg:'',
+      data:{ result:'邮寄发送成功' }
+    }
+  }
 }
 
 export default new UserController()
