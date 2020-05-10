@@ -1,5 +1,5 @@
 import { getJWT_token } from '../utils/common.js'
-// import { setValue } from '../config/RedisConfig.js'
+import { setValue,getValue } from '../config/RedisConfig.js'
 import User_model from '../model/User.js'
 import send from '../config/mailconfig'
 import moment from 'moment'
@@ -122,8 +122,8 @@ class UserController {
     const obj = getJWT_token(ctx.header.authorization)
     const user = await User_model.findById(obj._id)
     const key = uuidv4()
-    // setValue(key,jwt.sign({_id:obj._id},'abcd',{expiresIn:'30m'}))
     const {body} = ctx.request
+    setValue(key,jwt.sign({_id:obj._id},'abcd',{expiresIn:'30m'}),3000)
 
     let result = await send({
         type:'email',
@@ -137,6 +137,37 @@ class UserController {
       code:200,
       err_msg:'',
       data:{ result:'邮寄发送成功' }
+    }
+  }
+
+  async mail_update(ctx){
+    const {body} = ctx.request
+    const token = await getValue(body.key)
+    const obj = getJWT_token('Bearer '+token)
+    const confirm_exist = await User_model.findOne({email:body.email})
+
+    if(confirm_exist == null){
+      const result = await User_model.updateOne({_id:obj._id},{email:body.email})
+
+      if(result.n == 1 && result.ok == 1){
+        ctx.body = {
+          code:200,
+          err_msg:'',
+          data:{result:'更新邮箱成功'}
+        }
+      } else {
+        ctx.body = {
+          code:200,
+          err_msg:'',
+          data:{result:'更新邮箱失败，稍后再试'}
+        }
+      }
+    } else {
+      ctx.body = {
+        code:200,
+        err_msg:'',
+        data:{result:'该邮箱已注册'}
+      }
     }
   }
 }
