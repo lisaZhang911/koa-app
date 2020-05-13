@@ -19,10 +19,12 @@ const getJWT_token = (token) => {
 }
 
 const baseUrl = process.env.NODE_ENV == 'production' ? 'http://www.imooc.com':'http://localhost:3000'
+const baseUrl_page = process.env.NODE_ENV == 'production' ? 'http://www.imooc.com':'http://localhost:8080'
 
 
 export {
   checkCode,
   getJWT_token,
-  baseUrl
+  baseUrl,
+  baseUrl_page
 }

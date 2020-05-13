@@ -39,7 +39,17 @@ const errorHandle = (ctx, next) => {
 // app.use(statics(path.join(__dirname,'../public')))
 //使用compse合并中间件，不然就要一个一个app.use()了，像上面那样
 const middleware = compose([
-  koaBody(),
+  koaBody({
+    multipart:true,
+    encoding: 'utf-8',
+    formidable:{
+      keepExtensions: true,
+      maxFieldsSize:5 * 1024 * 1024
+    },
+    onError: err => {
+      console.log('err',err);
+    }
+  }),
   statics(path.join(__dirname,'./public')),
   cors(),
   jsonutil(),

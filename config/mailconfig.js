@@ -1,6 +1,6 @@
 "use strict";
 import nodemailer from "nodemailer";
-import { baseUrl } from '../utils/common.js'
+import { baseUrl_page } from '../utils/common.js'
 // async..await is not allowed in global scope, must use a wrapper
 async function send(sendInfo) {
   // Generate test SMTP service account from ethereal.email
@@ -20,7 +20,7 @@ async function send(sendInfo) {
 
   let route = sendInfo.type == 'email'?'/email':'reset'
   // let url = 'http://www.baidu.com'
-  let url = `${baseUrl}${route}?key=${sendInfo.key}`
+  let url = `${baseUrl_page}${route}?key=${sendInfo.key}`
   let email_html = `  <div style="border: 1px solid #dcdcdc;color: #676767;width: 600px; margin: 0 auto; padding-bottom: 50px;position: relative;">
         <div style="height: 60px; background: #393d49; line-height: 60px; color: #58a36f; font-size: 18px;padding-left: 10px;">XXX官方邮件</div>
         <div style="padding: 25px">

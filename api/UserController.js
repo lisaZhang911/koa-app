@@ -5,6 +5,10 @@ import send from '../config/mailconfig'
 import moment from 'moment'
 import { v4 as uuidv4 } from 'uuid'
 import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
+import fs from 'fs'
+import path from 'path'
+import mkDir from 'make-dir'
 
 class UserController {
   constructor(){}
@@ -120,9 +124,8 @@ class UserController {
 
   async verify_mail(ctx){
     const obj = getJWT_token(ctx.header.authorization)
-    const user = await User_model.findById(obj._id)
+    const user = await User_model.findOne({_id:obj._id})
     const key = uuidv4()
-    const {body} = ctx.request
     setValue(key,jwt.sign({_id:obj._id},'abcd',{expiresIn:'30m'}),3000)
 
     let result = await send({
@@ -130,7 +133,7 @@ class UserController {
         key:key,
         code:'',
         expire: moment().add(30,'minutes').format('YYYY-MM-DD HH:mm:ss'),
-        email: body.email,
+        email: user.email,
         user: user.name
     })
     ctx.body = {
@@ -157,17 +160,135 @@ class UserController {
         }
       } else {
         ctx.body = {
-          code:200,
-          err_msg:'',
-          data:{result:'更新邮箱失败，稍后再试'}
+          code:500,
+          err_msg:'更新邮箱失败，稍后再试',
+          data:{}
         }
       }
     } else {
       ctx.body = {
-        code:200,
-        err_msg:'',
-        data:{result:'该邮箱已注册'}
+        code:500,
+        err_msg:'该邮箱已注册',
+        data:{}
       }
+    }
+  }
+
+  async upload_img(ctx){
+    const file = ctx.request.files.file
+    const ext = file.name.split('.').pop()
+    // 以public/20200511这样的格式作为文件夹的名字，怎么能提高搜索的效率
+    // const dir = `../public/img/header.jpeg`
+    const dir = `./public/${moment().format('YYYYMMDD')}`
+
+    const picName = uuidv4()
+    const destPath = `${dir}/${picName}.${ext}`
+    // 判断路径是否存在，不存在则新建
+    await mkDir(dir)
+    // const getDirState = (path) => {
+    //   // console.log('path',path);
+    //   return new Promise((resolve) => {
+    //     fs.stat(path, (err,stats) => {
+    //       // console.log('err',err);
+    //       // console.log('stats',stats);
+    //       return err?resolve(false):resolve(stats)
+    //     })
+    //   })
+    // }
+    // const mkdir = (dir) => {
+    //   console.log('mkDir',dir);
+    //   return new Promise((resolve) => {
+    //     fs.mkdir(dir, err => err?resolve(false):resolve(true))
+    //   })
+    // }
+    // const dirExists = async (dir) => {
+    //   // dir存在但不是文件，则返回true
+    //   const isExist = await getDirState(dir)
+    //   if(isExist && isExist.isDirectory()){
+    //     //路径存在且为目录
+    //     return true
+    //   } else if(isExist){
+    //       //路径存在但不是目录
+    //       return false
+    //   }
+    //       //路径不存在
+    //       //拿到dir的上级目录
+    //       // path.parse('/home/user/dir/file.txt');
+    //       // 返回:
+    //       // { root: '/',
+    //       //   dir: '/home/user/dir',
+    //       //   base: 'file.txt',
+    //       //   ext: '.txt',
+    //       //   name: 'file' }
+    //       const tmpDir = path.parse(dir).dir
+    //       console.log('tmpDir',tmpDir);
+    //       const status = await dirExists(tmpDir)
+    //       if(status){
+    //         const result = await mkdir(dir)
+    //         console.log('result',result);
+    //         return result
+    //       } else {
+    //           return false
+    //       }
+    //
+    //
+    // }
+    // dirExists(dir)
+    const reader = fs.createReadStream(file.path)
+    const upStream = fs.createWriteStream(destPath)
+    // way1
+    reader.pipe(upStream)
+    // way2
+    // let totalLength = 0
+    // reader.on('data',function(chunk){
+    //   totalLength += chunk.length
+    //   if(upStream.write(chun) == false){
+    //     reader.pause()
+    //   }
+    // })
+    // reader.on('drain',function(){
+    //   reader.resume()
+    // })
+    // reader.on('end',function(){
+    //   upStream.end()
+    // })
+    ctx.body = {
+      code:200,
+      err_msg:'',
+      data:{
+        result:'图片上传成功',
+        pic:`${moment().format('YYYYMMDD')}/${picName}.${ext}`
+      }
+    }
+
+    // ctx.body = {
+    //   code:200,
+    //   err_msg:'',
+    //   data:{
+    //     result:'图片上传成功'
+    //   }
+    // }
+  }
+
+  async password_update(ctx){
+    const {body} = ctx.request
+    const obj = getJWT_token(ctx.header.authorization)
+    const user = await User_model.findOne({_id:obj._id})
+
+    if(await bcrypt.compare(body.nowpass,user.password)){
+        const newPwd = await bcrypt.hash(body.password,5)
+        const re = await User_model.updateOne({_id:obj._id},{$set:{password:newPwd}})
+        ctx.body = {
+          code:200,
+          err_msg:'',
+          data:{result:'修改密码成功'}
+        }
+    } else {
+        ctx.body = {
+          code:500,
+          err_msg:'原密码错误',
+          data:{}
+        }
     }
   }
 }
