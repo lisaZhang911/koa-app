@@ -18,7 +18,7 @@ async function send(sendInfo) {
     }
   });
 
-  let route = sendInfo.type == 'email'?'/email':'reset'
+  let route = sendInfo.type == 'email'?'/email':'/reset'
   // let url = 'http://www.baidu.com'
   let url = `${baseUrl_page}${route}?key=${sendInfo.key}`
   let email_html = `  <div style="border: 1px solid #dcdcdc;color: #676767;width: 600px; margin: 0 auto; padding-bottom: 50px;position: relative;">
@@ -31,7 +31,7 @@ async function send(sendInfo) {
         <div style="background: #fafafa; color: #b4b4b4;text-align: center; line-height: 45px; height: 45px; position: absolute; left: 0; bottom: 0;width: 100%;">系统邮件，请勿直接回复</div>
     </div>`
   let reset_html = `  <div style="border: 1px solid #dcdcdc;color: #676767;width: 600px; margin: 0 auto; padding-bottom: 50px;position: relative;">
-        <div style="height: 60px; background: #393d49; line-height: 60px; color: #58a36f; font-size: 18px;padding-left: 10px;">Imooc社区——欢迎来到官方社区</div>
+        <div style="height: 60px; background: #393d49; line-height: 60px; color: #58a36f; font-size: 18px;padding-left: 10px;">重置密码</div>
         <div style="padding: 25px">
           <div>您好，${sendInfo.user}童鞋，重置链接有效时间30分钟，请在${sendInfo.expire}之前重置您的密码：</div>
           <a href="${url}" style="padding: 10px 20px; color: #fff; background: #009e94; display: inline-block;margin: 15px 0;">立即重置密码</a>

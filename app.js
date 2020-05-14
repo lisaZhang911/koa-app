@@ -14,7 +14,7 @@ import koaJwt from 'koa-jwt'
 const app = new koa()
 const isDevMode = process.env.NODE_ENV === 'production'?false:true
 console.log('app.js',process.env.NODE_ENV);
-const jwt = koaJwt({secret:'abcd'}).unless({path:[/^\/public/,/^\/login/,/^\/reg/,/^\/forget/]})
+const jwt = koaJwt({secret:'abcd'}).unless({path:[/^\/public/,/^\/login/,/^\/reg/,/^\/forget/,/^\/reset_pwd/]})
 
 const errorHandle = (ctx, next) => {
   //仍然进入此处返回401

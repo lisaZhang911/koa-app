@@ -3,23 +3,73 @@ import moment from 'moment'
 import jsonwebtoken from 'jsonwebtoken'
 import { checkCode } from '../utils/common.js'
 import UserModel from '../model/User.js'
+import { setValue,getValue } from '../config/RedisConfig.js'
+import { getJWT_token } from '../utils/common.js'
 import bcrypt from 'bcrypt'
+import { v4 as uuidv4 } from 'uuid'
+
 
 class LoginController {
   constructor(){}
   async forget(ctx){
     const { body } = ctx.request
+    const email = body.email
+    const sid = body.sid
+    const code = body.code
+    let checkCode_result = await checkCode(sid,code)
 
-    let result = await send({
-        code:'1234',
-        expire: moment().add(5,'minutes').format('YYYY-MM-DD HH:mm:ss'),
-        email: body.email,
-        user: 'myrcella'
-    })
+    const key = uuidv4()
+    const user = await UserModel.findOne({email:body.email})
+    console.log('user',user);
+
+    if(checkCode_result){
+      setValue(key,jsonwebtoken.sign({_id:user._id},'abcd',{expiresIn:'30m'}),3000)
+
+      let result = await send({
+          type:'reset',
+          key:key,
+          code:'',
+          expire: moment().add(30,'minutes').format('YYYY-MM-DD HH:mm:ss'),
+          email: body.email,
+          user: '用户'
+      })
+      ctx.body = {
+        code: 200,
+        data: {result:'邮件发送成功'},
+        err_msg: ''
+      }
+    } else {
+        ctx.body = {
+          code:500,
+          err_msg:'验证码错误或过期',
+          data:{}
+        }
+    }
+
+  }
+
+  async password_reset(ctx){
+    //ctx中拿到新密码和key
+    const {body} = ctx.request
+    //从redis中拿到key对应的值
+    const token = await getValue(body.key)
+    //从值中得到id
+    const obj = await getJWT_token('Bearer '+token)
+    console.log('obj',obj);
+
+    //通过ID得到用户
+    const user = await UserModel.findOne({_id:obj._id})
+    //将新密码加密
+    const newPwd = await bcrypt.hash(body.password,5)
+
+    //将新密码更新到用户中
+    const re = await UserModel.updateOne({_id:obj._id},{$set:{password:newPwd}})
+    console.log('re',re);
+
     ctx.body = {
-      code: 200,
-      data: result,
-      msg: '邮件发送成功'
+      code:200,
+      err_msg:'',
+      data:{result:'密码充值成功'}
     }
   }
 
