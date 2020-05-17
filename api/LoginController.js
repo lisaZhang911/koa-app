@@ -54,7 +54,7 @@ class LoginController {
     //从redis中拿到key对应的值
     const token = await getValue(body.key)
     //从值中得到id
-    const obj = await getJWT_token('Bearer '+token)
+    const obj =  getJWT_token('Bearer '+token)
     console.log('obj',obj);
 
     //通过ID得到用户

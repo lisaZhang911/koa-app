@@ -180,7 +180,7 @@ class UserController {
     // 以public/20200511这样的格式作为文件夹的名字，怎么能提高搜索的效率
     // const dir = `../public/img/header.jpeg`
     const dir = `./public/${moment().format('YYYYMMDD')}`
-
+    //
     const picName = uuidv4()
     const destPath = `${dir}/${picName}.${ext}`
     // 判断路径是否存在，不存在则新建
