@@ -1,10 +1,9 @@
 import send from '../config/mailconfig'
 import moment from 'moment'
 import jsonwebtoken from 'jsonwebtoken'
-import { checkCode } from '../utils/common.js'
+import { checkCode,getJWT_token } from '../utils/common.js'
 import UserModel from '../model/User.js'
 import { setValue,getValue } from '../config/RedisConfig.js'
-import { getJWT_token } from '../utils/common.js'
 import bcrypt from 'bcrypt'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -55,7 +54,6 @@ class LoginController {
     const token = await getValue(body.key)
     //从值中得到id
     const obj =  getJWT_token('Bearer '+token)
-    console.log('obj',obj);
 
     //通过ID得到用户
     const user = await UserModel.findOne({_id:obj._id})
