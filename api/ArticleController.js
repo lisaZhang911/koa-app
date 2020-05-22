@@ -38,6 +38,7 @@ class ArticleController {
     if(typeof body.isTop != 'undefined'){
       options.isTop = body.isTop
     }
+    console.log('option',options);
     const result = await ArticleModel.getList(options,sort,page,page_limit)
     ctx.body = {
       code:200,
@@ -58,28 +59,31 @@ class ArticleController {
   async add_post(ctx){
     //1、获取前端传过来的数据
     const {body} = ctx.request
-    const sid = body.sid
-    const code = body.code
+    body.tags = '1'
+    body.read_s = 0
+    body.answ_s = 0
+    body.isTop = '0'
+    body.precious = '1'
     const token = ctx.header.authorization
     const score = body.score
     const catalog = body.catalog
     //2、从第1步提取sid和code，检查验证码
 
-    let checkCode_result = await checkCode(sid,code)
       //2.1、如果第2步正确，则通过token解析出用户id
       //2.2、判断用户积分是否够支付文章积分
         //2.2.1、如果够，则把信息存入数据库
-    if(checkCode_result){
       const obj =  getJWT_token(token)
       const user = await User_model.findById(obj._id)
       console.log('user',user);
-      if(score > user.score && catalog == 'ask'){
+      if((score > user.score) && catalog == 'ask'){
         ctx.body = {
           code:200,
           err_msg:'',
           data:{result:'你的积分不够'}
         }
       } else {
+        body.uid = obj._id
+        console.log('body',body);
         const post = new ArticleModel(body)
         await post.save()
         ctx.body = {
@@ -88,12 +92,15 @@ class ArticleController {
           data:{result:'发表成功'}
         }
       }
-    } else {
-      ctx.body = {
-        code:500,
-        err_msg:'验证码过期或错误',
-        data:{}
-      }
+  }
+
+  async get_postDetail(ctx){
+    const id = ctx.request.query.id
+    const post = await ArticleModel.get_list_detail({_id:id})
+    ctx.body = {
+      code:200,
+      err_msg:'',
+      data:post
     }
   }
 }

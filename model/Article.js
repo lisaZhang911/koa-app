@@ -19,6 +19,10 @@ const ArticleSchema = new Schema({
 })
 
 ArticleSchema.static('getList',function(options,sort,page,limit){
+  if(options.catalog == 'index'){
+    delete options.catalog
+  }
+
   return this.find(options)
              .sort({[sort]:-1})
              .skip(page*limit)
@@ -27,6 +31,10 @@ ArticleSchema.static('getList',function(options,sort,page,limit){
                path:'uid',
                select:'name isVip avar'
              })
+})
+
+ArticleSchema.static('get_list_detail',function(options){
+  return this.findOne(options).populate({path:'uid',select:'name isVip avar'})
 })
 
 ArticleSchema.static('getTopWeek',function(){
