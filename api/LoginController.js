@@ -19,7 +19,6 @@ class LoginController {
 
     const key = uuidv4()
     const user = await UserModel.findOne({email:body.email})
-    console.log('user',user);
 
     if(checkCode_result){
       setValue(key,jsonwebtoken.sign({_id:user._id},'abcd',{expiresIn:'30m'}),3000)
