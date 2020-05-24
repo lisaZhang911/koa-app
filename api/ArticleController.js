@@ -1,6 +1,7 @@
 import ArticleModel from '../model/Article.js'
 import User_model from '../model/User.js'
 import Comment_model from '../model/Comment.js'
+import Good_model from '../model/Good_comment.js'
 import { checkCode,getJWT_token } from '../utils/common.js'
 
 
@@ -131,11 +132,70 @@ class ArticleController {
 
     const result = await Comment_model.getCommentList({tid:query.tid},page,page_limit)
     const list_quality = await Comment_model.comment_list_quality(query.tid)
-  
+
     ctx.body = {
       code:200,
       err_msg:'',
       data:{result:result,page_total:Math.ceil(list_quality/page_limit)}
+    }
+  }
+
+  async set_best(ctx){
+    //获取前端传来的数据：cid,此为该评论的id
+    const {body} = ctx.request
+    const cid = body.cid
+    //判断此操作者是不是该文章作者
+      //1、获取操作者ID
+    const token = ctx.header.authorization
+    const obj = getJWT_token(token)
+    const oper_id = obj._id
+      //2、获得该文章ID
+    const comment_info = await Comment_model.findOne({_id:cid})
+    const post_id = comment_info.uid
+      //3、对比两个ID是否相同
+    if(oper_id == post_id){
+      await Comment_model.updateOne({_id:cid},{$set:{isBest:'1'}})
+      ctx.body = {
+        code:200,
+        err_msg:'',
+        data:{result:'采纳成功'}
+      }
+    } else {
+        ctx.body = {
+          code:500,
+          err_msg:'您无权操作采纳',
+          data:{}
+        }
+    }
+  }
+
+  async set_good(ctx){
+    //获取前端传过来的数据：cid，此为该评论的ID
+    const {body} = ctx.request
+    const uid = getJWT_token(ctx.header.authorization)._id
+    const cid = body.cid
+    //判断该用户是否已点赞
+    const queryResult = await Good_model.findOne({uid:uid})
+    if(queryResult == null){
+      //新增点赞记录
+      const good = new Good_model({
+        cid:cid,
+        uid:uid
+      })
+      await good.save()
+      //更新评论表中的点赞计数
+      await Comment_model.updateOne({_id:cid},{$inc:{good_count:1}})
+      ctx.body = {
+        code:200,
+        err_msg:'',
+        data:{result:'点赞成功'}
+      }
+    } else {
+      ctx.body = {
+        code:500,
+        err_msg:'不可重复点赞',
+        data:{}
+      }
     }
   }
 }
