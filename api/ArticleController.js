@@ -2,6 +2,7 @@ import ArticleModel from '../model/Article.js'
 import User_model from '../model/User.js'
 import Comment_model from '../model/Comment.js'
 import Good_model from '../model/Good_comment.js'
+import Collect_model from '../model/Collect.js'
 import { checkCode,getJWT_token } from '../utils/common.js'
 
 
@@ -46,6 +47,29 @@ class ArticleController {
       code:200,
       data:result,
       err_msg:''
+    }
+  }
+
+  async getArticleList_id(ctx){
+    //获取登录者ID
+    const uid = getJWT_token(ctx.header.authorization)._id
+    const params = ctx.request.query
+    const options = {uid:uid}
+
+    const total = await ArticleModel.find({uid:uid}).countDocuments()
+    const r = await ArticleModel.get_list_id(
+      options,
+      'create_time',
+      Number(params.page),
+      Number(params.page_limit)
+    )
+    ctx.body = {
+      code:200,
+      err_msg:'',
+      data:{
+        data:r,
+        totalPage:Math.ceil(total/Number(params.page_limit))
+      }
     }
   }
 
@@ -96,9 +120,28 @@ class ArticleController {
       }
   }
 
+  async edit_post(ctx){
+    //获取前端传过来的数据：tid,title,content
+    const {body} = ctx.request
+    const tid = body.tid
+    const title = body.title
+    const content = body.content
+
+    await ArticleModel.updateOne({_id:tid},{$set:{title:title,content:content}})
+    ctx.body = {
+      code:200,
+      err_msg:'',
+      data:{result:'编辑成功'}
+    }
+  }
+
   async get_postDetail(ctx){
     const id = ctx.request.query.id
+    //获取文章详情
     const post = await ArticleModel.get_list_detail({_id:id})
+    //阅读计数
+    await ArticleModel.updateOne({_id:id},{$inc:{read_s:1}})
+
     ctx.body = {
       code:200,
       err_msg:'',
@@ -113,9 +156,12 @@ class ArticleController {
     options.uid = body.uid
     options.tid = body.tid
     options.content = body.content
-
+    //保存新评论
     const comment = new Comment_model(options)
     await comment.save()
+    //记录评论数
+    const count = await Comment_model.find({tid:body.tid}).countDocuments()
+    await ArticleModel.updateOne({_id:body.tid},{$inc:{answ_s:1}})
 
     ctx.body = {
       code:200,
@@ -195,6 +241,84 @@ class ArticleController {
         code:500,
         err_msg:'不可重复点赞',
         data:{}
+      }
+    }
+  }
+
+  async collect_post(ctx){
+    //获取前端传来的数据:tid / uid / title
+    const {body} = ctx.request
+    const tid = body.tid
+    const uid = getJWT_token(ctx.header.authorization)
+    const title = body.title
+
+    //判断收藏状态
+    const isCollect = body.isCollect
+
+    if(isCollect == '0'){
+      const r = new Collect_model({
+        tid:tid,
+        uid:uid,
+        title:title
+      })
+      await r.save()
+      // await User_model.updateOne({_id:uid},{$set:{isCollect:'1'}})
+      ctx.body = {
+        code:200,
+        err_msg:'',
+        data:{result:'收藏成功'}
+      }
+    } else {
+      await Collect_model.deleteOne({uid:uid,tid:tid})
+      ctx.body = {
+        code:200,
+        err_msg:'',
+        data:{result:'取消收藏成功'}
+      }
+    }
+  }
+
+  async collect_state(ctx){
+    //获取前端传过来的uid
+    const uid = ctx.query.uid
+    const record =await Collect_model.findOne({uid:uid})
+
+    if(record){
+      //已经收藏过
+      ctx.body = {
+        code:200,
+        err_msg:'',
+        data:{isCollect:'1'}
+      }
+    } else {
+      //没收藏过
+      ctx.body = {
+        code:200,
+        err_msg:'',
+        data:{isCollect:'0'}
+      }
+    }
+  }
+
+  async get_collectList(ctx){
+    //获取登录者ID
+    const uid = getJWT_token(ctx.header.authorization)._id
+    const params = ctx.request.query
+    const options = {uid:uid}
+
+    const total = await Collect_model.find({uid:uid}).countDocuments()
+    const r = await Collect_model.get_collect_list(
+      options,
+      'create_time',
+      Number(params.page),
+      Number(params.page_limit)
+    )
+    ctx.body = {
+      code:200,
+      err_msg:'',
+      data:{
+        data:r,
+        totalPage:Math.ceil(total/Number(params.page_limit))
       }
     }
   }

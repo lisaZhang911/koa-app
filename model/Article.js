@@ -34,7 +34,18 @@ ArticleSchema.static('getList',function(options,sort,page,limit){
 })
 
 ArticleSchema.static('get_list_detail',function(options){
-  return this.findOne(options).populate({path:'uid',select:'name isVip avar'})
+  return this.findOne(options)
+             .populate({
+               path:'uid',
+               select:'name isVip avar'
+             })
+})
+
+ArticleSchema.static('get_list_id',function(options,sort,page,limit){
+  return this.find(options)
+             .sort({[sort]:-1})
+             .skip(page*limit)
+             .limit(limit)
 })
 
 ArticleSchema.static('getTopWeek',function(){
