@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@koa/cors": "^3.0.0",
-    "bcrypt": "^4.0.1",
+    "bcrypt": "^5.0.0",
     "jsonwebtoken": "^8.5.1",
     "koa-body": "^4.1.1",
     "koa-combine-routers": "^4.0.2",
